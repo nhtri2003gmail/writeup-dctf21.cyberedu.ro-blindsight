@@ -47,11 +47,11 @@ First thing we need to do is to find stop_gadget, which will
 Table of content
 
 1. [Finding stop_gadget](#1-finding-stop_gadget)
-2. Finding useful_gadget
-3. Finding main address
-4. Finding puts@plt
-5. Dumping stack
-6. Get shell
+2. [Finding useful_gadget](#2-finding-useful_gadget)
+3. [Finding main address](#3-finding-main-address)
+4. [Finding puts@plt](#4-finding-putsplt)
+5. [Dumping stack](#5-dumping-stack)
+6. [Get shell](#6-get-shell)
 
 ---
 
