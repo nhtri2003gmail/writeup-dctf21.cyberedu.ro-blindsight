@@ -44,24 +44,23 @@ First thing we need to do is to find stop_gadget, which will
 
 # 3. Exploit
 
-1. test
+Table of content
 
-	<details>
-	<summary>Table of Content</summary>
-	<p>
+1. [Finding stop_gadget](https://github.com/nhtri2003gmail/writeup-dctf21.cyberedu.ro-blindsight#4-get-flag)
+2. Finding useful_gadget
+3. Finding main address
+4. Finding puts@plt
+5. Dumping stack
+6. Get shell
 
-	```
-	1. [Finding stop_gadget](https://github.com/nhtri2003gmail/writeup-dctf21.cyberedu.ro-blindsight#4-get-flag)
-	2. Finding useful_gadget
-	3. Finding main address
-	4. Finding puts@plt
-	5. Dumping stack
-	6. Get shell
-	```
+---
 
-	</p>
-	</details>
-
+### 1. Finding stop_gadget
+### 2. Finding useful_gadget
+### 3. Finding main address
+### 4. Finding puts@plt
+### 5. Dumping stack
+### 6. Get shell
 
 
 # 4. Get Flag
