@@ -46,7 +46,7 @@ First thing we need to do is to find stop_gadget, which will
 
 	<detail>
 	<summary>Table of Content</summary>
-		<p>
+	<p>
 ```
 1. Finding stop_gadget
 2. Finding useful_gadget
@@ -55,7 +55,7 @@ First thing we need to do is to find stop_gadget, which will
 5. Dumping stack
 6. Get shell
 ```
-		</p>
+	</p>
 	</detail>
 
 
