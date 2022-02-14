@@ -46,7 +46,7 @@ First thing we need to do is to find stop_gadget, which will
 
 Table of content
 
-1. [Finding stop_gadget](https://github.com/nhtri2003gmail/writeup-dctf21.cyberedu.ro-blindsight#4-get-flag)
+1. [Finding stop_gadget](#1-finding-stop_gadget)
 2. Finding useful_gadget
 3. Finding main address
 4. Finding puts@plt
