@@ -44,7 +44,7 @@ First thing we need to do is to find stop_gadget, which will
 
 # 3. Exploit
 
-	<detail>
+	<details>
 	<summary>Table of Content</summary>
 	<p>
 	```
@@ -56,7 +56,7 @@ First thing we need to do is to find stop_gadget, which will
 	6. Get shell
 	```
 	</p>
-	</detail>
+	</details>
 
 
 
