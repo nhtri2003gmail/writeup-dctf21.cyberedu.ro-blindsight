@@ -133,6 +133,10 @@ So we know that offset will be 88. Before we continue to find the stop_gadget, w
 
 To do that, we will bruteforce byte to byte, which is faster than bruteforce from `0` to `0xffffffffffffffff`. The script will be as following:
 
+<details>
+<summary>Sub Script</summary>
+<p>
+
 ```
 from pwn import *
 
@@ -170,6 +174,9 @@ def GetStackCanary():
 GetStackCanary()
 ```
 
+</p>
+</details>
+
 And we leak the stack canary:
 
 ![found_stack_canary.png](images/found_stack_canary.png)
@@ -177,6 +184,10 @@ And we leak the stack canary:
 Oh wait, that's not stack canary! Stack canary won't have so much null bytes like that and it will full of 8 bytes. So that is return rip and we can use that to bruteforce things. Also with that address, we now know that program base address will start from `0x400000`. 
 
 From here, we can find stop gadget with start address at 0x400000 and stop address at 0x401000 (enough for a ELF file). In face, these stop gadget are many, so that we just need to find one of them. I will use multiple thread for better performance:
+
+<details>
+<summary>Sub Script</summary>
+<p>
 
 ```
 from threading import Thread
@@ -215,6 +226,9 @@ for i in range(0xf+1):
     Thread(target=GetStopGadget, args=(i*0x100 + 0x400000, (i+1)*0x100 + 0x400000, )).start()
 ```
 
+</p>
+</details>
+
 Running the script and we get a stop gadget:
 
 ![found_stop_gadget.png](images/found_stop_gadget.png)
@@ -224,6 +238,10 @@ That's pretty good! Our stop gadget is at `0x400705`. Let's move on finding main
 ### 2. Finding main address ([Table of Content](#3-exploit))
 
 For each connection, it first print out `Are you blind my friend?`. So we will bruteforce until we find out at what address this string will be printed. We will also use multiple thread for better performance:
+
+<details>
+<summary>Sub Script</summary>
+<p>
 
 ```
 from threading import Thread
@@ -274,6 +292,9 @@ with open('main', 'wt') as f:
     f.write(min + '\n')
 ```
 
+</p>
+</details>
+
 Because we use multiple thread so handling output will be more complex, but it's more effectively than bruteforce 1 thread from 0x400000 to 0x401000. Running it and we get the main address:
 
 ![get_main_addr.png](images/get_main_addr.png)
@@ -305,6 +326,10 @@ We can see that at the last pop (`pop r15`), the opcode is similar to `pop rdi`:
 ![pop_rdi_csu.png](images/pop_rdi_csu.png)
 
 So that if our useful_gadget is `0x4007ea`, we will have `pop rdi` at address `0x4007ea + 9`. So just create script to check if it's 6-pop then check if it's 1-pop next and we can filter out so much (multiple thread again). Usually, csu is at the end of program so we just need to take the bigger address and that will be pop 6 in csu:
+
+<details>
+<summary>Sub Script</summary>
+<p>
 
 ```
 from threading import Thread
@@ -374,6 +399,9 @@ with open('useful_gadget', 'wt') as f:
     f.write(max_addr + '\n')
 ```
 
+</p>
+</details>
+
 Running script will give us pop 6 address: 
 
 ![useful_gadget.png](images/useful_gadget.png)
@@ -385,6 +413,10 @@ So we get the useful_gadget  `0x4007ba`, which add 9 will equal to `pop rdi; ret
 When we get the gadget `pop rdi, ret`, now we need to get the puts@plt to dump stack in the following step. As we know that main address is `0x4005c0`, the @plt will be before the address of main and the smallest address can be found. 
 
 So we just need to check from `0x400000` to `0x400600` to find puts@plt and the string we will use is the base address which contain ELF header and string `b'\x7fELF'`:
+
+<details>
+<summary>Sub Script</summary>
+<p>
 
 ```
 from threading import Thread
@@ -440,6 +472,9 @@ with open('useful_gadget', 'wt') as f:
     f.write(min_addr + '\n')
 ```
 
+</p>
+</details>
+
 Running the script and we will get puts@plt address at `0x400550`:
 
 ![puts_addr.png](images/puts_addr.png)
@@ -449,6 +484,10 @@ That's is almost everything we need. Just 1 more things we can do is dump the pr
 ### 5. Dumping stack ([Table of Content](#3-exploit))
 
 We have puts@plt, we know the base, everything now is just simple as it is. Remember that if we recv just 1 byte `\n`, that is null byte, not `\n`, but if we recv more than 2 byte, just make sure to remove `\n` at the end or it may cause some troubles:
+
+<details>
+<summary>Sub Script</summary>
+<p>
 
 ```
 from threading import Thread
@@ -502,6 +541,9 @@ for i in range(0, 0xf+1):
     with open('core', 'ab') as f:
         f.write(core[:0x100])
 ```
+
+</p>
+</details>
 
 Running that script and we get the ELF file:
 
