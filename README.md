@@ -94,6 +94,9 @@ For this challenge, we will write python script for convinient exploit
 
 First, we need to know at what offset the program will crash (won't print out the string `No password for you!`) by passing large string, then half upper/lower of it, then half upper/lower of it and keep going until we find the offset, or we can use the following script to check that for us:
 
+<details>
+<p>
+
 ```
 from pwn import *
 
@@ -117,6 +120,9 @@ def GetBuffSize():
             break
 GetBuffSize()
 ```
+
+</p>
+</details>
 
 And we know the offset:
 
