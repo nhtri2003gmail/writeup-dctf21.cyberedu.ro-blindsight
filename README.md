@@ -90,7 +90,7 @@ Table of content
 
 For this challenge, we will write python script for convinient exploit
 
-### 1. Finding stop_gadget (optional for this challenge only)
+### 1. Finding stop_gadget (optional for this challenge only) ([Table of Content](#3-exploit))
 
 First, we need to know at what offset the program will crash (won't print out the string `No password for you!`) by passing large string, then half upper/lower of it, then half upper/lower of it and keep going until we find the offset, or we can use the following script to check that for us:
 
@@ -214,7 +214,7 @@ Running the script and we get a stop gadget:
 
 That's pretty good! Our stop gadget is at `0x400705`. Let's move on finding main address!
 
-### 2. Finding main address
+### 2. Finding main address ([Table of Content](#3-exploit))
 
 For each connection, it first print out `Are you blind my friend?`. So we will bruteforce until we find out at what address this string will be printed. We will also use multiple thread for better performance:
 
@@ -273,7 +273,7 @@ Because we use multiple thread so handling output will be more complex, but it's
 
 The main address is at `0x4005c0`. That's wonderful! Let's move on guys.
 
-### 3. Finding useful_gadget
+### 3. Finding useful_gadget ([Table of Content](#3-exploit))
 
 Finding useful gadget means finding 6 pop in csu (pop rbx; rbp; r12; r13; r14; r15; ret in csu). This is the essential part of program so it usually has in the program after main. We now have main address , so finding useful gadget, we will start from `0x405000`. 
 
@@ -373,7 +373,7 @@ Running script will give us pop 6 address:
 
 So we get the useful_gadget  `0x4007ba`, which add 9 will equal to `pop rdi; ret`. Now let's finding puts@plt in the next step!
 
-### 4. Finding puts@plt
+### 4. Finding puts@plt ([Table of Content](#3-exploit))
 
 When we get the gadget `pop rdi, ret`, now we need to get the puts@plt to dump stack in the following step. As we know that main address is `0x4005c0`, the @plt will be before the address of main and the smallest address can be found. 
 
@@ -439,7 +439,7 @@ Running the script and we will get puts@plt address at `0x400550`:
 
 That's is almost everything we need. Just 1 more things we can do is dump the program opcode from stack, then view assembly code to get to know how the program work and we can plan the exploitation easier. Let's move on next step!
 
-### 5. Dumping stack
+### 5. Dumping stack ([Table of Content](#3-exploit))
 
 We have puts@plt, we know the base, everything now is just simple as it is. Remember that if we recv just 1 byte `\n`, that is null byte, not `\n`, but if we recv more than 2 byte, just make sure to remove `\n` at the end or it may cause some troubles:
 
@@ -502,7 +502,7 @@ Running that script and we get the ELF file:
 
 How nice! Let's move on final step: Get shell!
 
-### 6. Get shell
+### 6. Get shell ([Table of Content](#3-exploit))
 
 Now we have the ELF file, just disassemble the file using ida to see it's flow. At first, I tried leaking puts@got and other GOT but failed. It seems like it take the opcode of program and copy it to GOT so when I print out GOTs, I just got the same opcode again and again.
 
@@ -540,7 +540,7 @@ At first, I
 
 
 
-# 4. Get Flag ([Menu](#3-exploit))
+# 4. Get Flag
 
 ![get_flag.png](images/get_flag.png)
 
