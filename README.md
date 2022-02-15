@@ -571,9 +571,9 @@ Now let's keep going. Let's examine from the string `Are you blind my friend?`. 
 
 We can see that this function just sub 0x80 but input upto 0x400 so **Buffer Overflow** is what we are exploiting. The function `sub_400580` is `read@plt` because all parameters are just in the correct position. The function `sub_4005A0` may be `strcmp@plt` because rdi is our input string but rsi is the string `aslvkm;asd;alsfm;aoeim;wnv;lasdnvdljasd`. 
 
-After that comparision, it returns without changing any register (all @plt change register but then return back all register after it's done). So we know that rdi still remains, pointing to our input. We know that puts just end when it meet newline character `\n`, not null byte.
+After that comparision, it doesn't change register and returns (the @plt may change register such as mainly rax, rdx...). We just try to print out our string which maybe still remain on rdi. We know that puts just end when it meet newline character `\n`, not null byte.
 
-So with our payload is on stack and rdi, we can try to puts our string to check if we can get anything interesting and the end of our input (check address after overwrited rip) with payload like this:
+So with our payload is on stack and rdi, we can try to print out our string to check if we can get anything interesting and the end of our input (check address after overwrited rip) with payload like this:
 
 ```
 payload = b'A'*88 + p64(puts_plt)
