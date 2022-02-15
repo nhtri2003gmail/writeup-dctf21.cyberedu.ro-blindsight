@@ -74,17 +74,17 @@ Having puts@plt, we will need to dump the program to get to know more clearly ab
 
 Table of content
 
-1. [Finding stop_gadget](#1-finding-stop_gadget-optional-for-this-challenge-only)
+1. [Finding stop_gadget](#1-finding-stop_gadget-optional-for-this-challenge-only-table-of-content)
 
-2. [Finding main address](#2-finding-main-address)
+2. [Finding main address](#2-finding-main-address-table-of-content)
 
-3. [Finding useful_gadget](#3-finding-useful_gadget)
+3. [Finding useful_gadget](#3-finding-useful_gadget-table-of-content)
 
-4. [Finding puts@plt](#4-finding-putsplt)
+4. [Finding puts@plt](#4-finding-putsplt-table-of-content)
 
-5. [Dumping stack](#5-dumping-stack)
+5. [Dumping stack](#5-dumping-stack-table-of-content)
 
-6. [Get shell](#6-get-shell)
+6. [Get shell](#6-get-shell-table-of-content)
 
 ---
 
