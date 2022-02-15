@@ -74,11 +74,11 @@ Having puts@plt, we will need to dump the program to get to know more clearly ab
 
 Table of content
 
-1. [Finding stop_gadget](#1-finding-stop_gadget)
+1. [Finding stop_gadget](#1-finding-stop_gadget-optional-for-this-challenge-only)
 
-3. [Finding main address](#3-finding-main-address)
+2. [Finding main address](#2-finding-main-address)
 
-2. [Finding useful_gadget](#2-finding-useful_gadget)
+3. [Finding useful_gadget](#3-finding-useful_gadget)
 
 4. [Finding puts@plt](#4-finding-putsplt)
 
@@ -540,7 +540,7 @@ At first, I
 
 
 
-# 4. Get Flag
+# 4. Get Flag ([Menu](#3-exploit))
 
 ![get_flag.png](images/get_flag.png)
 
