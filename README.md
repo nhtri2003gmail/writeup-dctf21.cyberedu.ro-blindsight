@@ -597,7 +597,7 @@ To make sure the rsp is null may be quite hard or unsure so we will use the firs
 
 ![xor_rax.png](images/xor_rax.png)
 
-And we will need all libc function which end with `620`. Why just `620` but not `1620` as above leaked libc address? As I said that just 3 least `620` is remain, the `1` in `1620` will change after each run so we just find from provided libc which function end with `620`:
+And we will need all libc function which end with `620`. Why just `620` but not `1620` as above leaked libc address? As I said that just 3 least `620` is remain, the `1` in `1620` will change after each run so we just find from provided libc which function ends with `620`:
 
 ```
 $ objdump -T libc-2.23.so | grep "620 "
@@ -611,7 +611,7 @@ $ objdump -T libc-2.23.so | grep "620 "
 Now we just use the leaked libc address subtract with these offset to get libc base, then calculate one gadget and put it to the rip and we get the shell. Script will be as follows:
 
 <details>
-<summary></summary>
+<summary>Sub Script</summary>
 <p>
 
 ```
