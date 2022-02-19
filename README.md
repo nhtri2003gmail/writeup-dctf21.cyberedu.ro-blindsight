@@ -14,7 +14,7 @@ Archived challenge link: https://app.cyberedu.ro/
 
 You can also download challenge in my repo (still need address server so refer to archived link above): [blindsight.zip](blindsight.zip)
 
-There will be 1 file in zip:
+There will be 1 file in zip
 
 - libc-2.23.so
 
